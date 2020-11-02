@@ -430,6 +430,7 @@ class MBPO(RLAlgorithm):
 
         ## can sample from the env pool even if env_batch_size == 0
         env_batch = self._pool.random_batch(env_batch_size)
+        mf_batch = self._pool.random_batch(batch_size)
 
         if model_batch_size > 0:
             model_batch = self._model_pool.random_batch(model_batch_size)
@@ -440,7 +441,7 @@ class MBPO(RLAlgorithm):
             ## if real_ratio == 1.0, no model pool was ever allocated,
             ## so skip the model pool sampling
             batch = env_batch
-        return batch
+        return batch, mf_batch
 
     def _init_global_step(self):
         self.global_step = training_util.get_or_create_global_step()
@@ -662,13 +663,18 @@ class MBPO(RLAlgorithm):
 
     def _do_training(self, iteration, batch):
         """Runs the operations for updating training and target ops."""
+        mix_batch, mf_batch = batch
 
         self._training_progress.update()
         self._training_progress.set_description()
 
-        feed_dict = self._get_feed_dict(iteration, batch)
+        mix_feed_dict = self._get_feed_dict(iteration, mix_batch)
+        mf_feed_dict = self._get_feed_dict(iteration, mf_batch)
 
-        self._session.run(self._training_ops, feed_dict)
+        self._session.run(self._misc_training_ops, mix_feed_dict)
+        self._session.run(self._actor_training_ops, mix_feed_dict)
+        self._session.run(self._critic_training_ops, mix_feed_dict)
+        # self._session.run(self._critic_training_ops, mf_feed_dict)
 
         if iteration % self._target_update_interval == 0:
             # Run target ops here.
