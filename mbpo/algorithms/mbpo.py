@@ -159,6 +159,9 @@ class MBPO(RLAlgorithm):
 
     def _build(self):
         self._training_ops = {}
+        self._actor_training_ops = {}
+        self._critic_training_ops = {}
+        self._misc_training_ops = {} # basically no feeddict is needed
 
         self._init_global_step()
         self._init_placeholders()
@@ -444,6 +447,9 @@ class MBPO(RLAlgorithm):
         self._training_ops.update({
             'increment_global_step': training_util._increment_global_step(1)
         })
+        self._misc_training_ops.update({
+            'increment_global_step': training_util._increment_global_step(1)
+        })
 
     def _init_placeholders(self):
         """Create input placeholders for the SAC algorithm.
@@ -559,6 +565,7 @@ class MBPO(RLAlgorithm):
             in enumerate(zip(self._Qs, Q_losses, self._Q_optimizers)))
 
         self._training_ops.update({'Q': tf.group(Q_training_ops)})
+        self._critic_training_ops.update({'Q': tf.group(Q_training_ops)})
 
     def _init_actor_update(self):
         """Create minimization operations for policy and entropy.
@@ -589,6 +596,9 @@ class MBPO(RLAlgorithm):
                 loss=alpha_loss, var_list=[log_alpha])
 
             self._training_ops.update({
+                'temperature_alpha': self._alpha_train_op
+            })
+            self._actor_training_ops.update({
                 'temperature_alpha': self._alpha_train_op
             })
 
@@ -634,6 +644,7 @@ class MBPO(RLAlgorithm):
             ) if self._tf_summaries else ())
 
         self._training_ops.update({'policy_train_op': policy_train_op})
+        self._actor_training_ops.update({'policy_train_op': policy_train_op})
 
     def _init_training(self):
         self._update_target(tau=1.0)
