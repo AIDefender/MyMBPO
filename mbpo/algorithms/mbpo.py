@@ -713,15 +713,26 @@ class MBPO(RLAlgorithm):
 
         Also calls the `draw` method of the plotter, if plotter defined.
         """
+        #TODO: modify
+        mix_batch, mf_batch = batch
+        mix_feed_dict = self._get_feed_dict(iteration, mix_batch)
+        mf_feed_dict = self._get_feed_dict(iteration, mf_batch)
 
-        feed_dict = self._get_feed_dict(iteration, batch)
+        # (Q_values, Q_losses, alpha, global_step) = self._session.run(
+        #     (self._Q_values,
+        #      self._Q_losses,
+        #      self._alpha,
+        #      self.global_step),
+        #     feed_dict)
+        Q_values, Q_losses = self._session.run(
+            [self._Q_values, self._Q_losses],
+            mf_feed_dict
+        )
 
-        (Q_values, Q_losses, alpha, global_step) = self._session.run(
-            (self._Q_values,
-             self._Q_losses,
-             self._alpha,
-             self.global_step),
-            feed_dict)
+        alpha, global_step = self._session.run(
+            [self._alpha, self.global_step],
+            mix_feed_dict
+        )
 
         diagnostics = OrderedDict({
             'Q-avg': np.mean(Q_values),
@@ -731,7 +742,7 @@ class MBPO(RLAlgorithm):
         })
 
         policy_diagnostics = self._policy.get_diagnostics(
-            batch['observations'])
+            mix_batch['observations'])
         diagnostics.update({
             f'policy/{key}': value
             for key, value in policy_diagnostics.items()
