@@ -83,7 +83,8 @@ def generate_experiment(trainable_class, variant_spec, command_line_args):
         command_line_args.trial_extra_cpus,
         command_line_args.trial_extra_gpus)
 
-    experiment_id = params.get('exp_name')
+    # experiment_id = params.get('exp_name')
+    experiment_id = command_line_args.exp_name
 
     variant_spec = add_command_line_args_to_variant_spec(
         variant_spec, command_line_args)

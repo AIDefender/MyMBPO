@@ -270,10 +270,10 @@ def get_parser(allow_policy_list=False):
             choices=('gaussian', ),
             default='gaussian')
 
-    # parser.add_argument(
-    #     '--exp-name',
-    #     type=str,
-    #     default=datetimestamp())
+    parser.add_argument(
+        '--exp-name',
+        type=str,
+        default="defaults")
     parser.add_argument(
         '--mode', type=str, default='local')
     parser.add_argument(
