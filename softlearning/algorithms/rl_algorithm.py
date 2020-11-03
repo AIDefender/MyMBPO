@@ -35,6 +35,7 @@ class RLAlgorithm(tf.contrib.checkpoint.Checkpointable):
             eval_render_mode=None,
             video_save_frequency=0,
             session=None,
+            **kwargs
     ):
         """
         Args:

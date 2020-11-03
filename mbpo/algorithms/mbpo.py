@@ -155,6 +155,9 @@ class MBPO(RLAlgorithm):
         assert len(action_shape) == 1, action_shape
         self._action_shape = action_shape
 
+        self._critic_train_repeat = kwargs["critic_train_repeat"]
+        self._critic_train_freq = self._n_train_repeat // self._critic_train_repeat
+
         self._build()
 
     def _build(self):
@@ -673,8 +676,9 @@ class MBPO(RLAlgorithm):
 
         self._session.run(self._misc_training_ops, mix_feed_dict)
         self._session.run(self._actor_training_ops, mix_feed_dict)
-        self._session.run(self._critic_training_ops, mix_feed_dict)
-        # self._session.run(self._critic_training_ops, mf_feed_dict)
+        # self._session.run(self._critic_training_ops, mix_feed_dict)
+        if iteration % self._critic_train_freq == 0:
+            self._session.run(self._critic_training_ops, mf_feed_dict)
 
         if iteration % self._target_update_interval == 0:
             # Run target ops here.
