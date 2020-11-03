@@ -26,6 +26,7 @@ class RLAlgorithm(tf.contrib.checkpoint.Checkpointable):
             n_epochs=1000,
             train_every_n_steps=1,
             n_train_repeat=1,
+            critic_train_repeat=1,
             max_train_repeat_per_timestep=5,
             n_initial_exploration_steps=0,
             initial_exploration_policy=None,
@@ -35,7 +36,6 @@ class RLAlgorithm(tf.contrib.checkpoint.Checkpointable):
             eval_render_mode=None,
             video_save_frequency=0,
             session=None,
-            **kwargs
     ):
         """
         Args:
@@ -55,6 +55,7 @@ class RLAlgorithm(tf.contrib.checkpoint.Checkpointable):
 
         self._n_epochs = n_epochs
         self._n_train_repeat = n_train_repeat
+        self._critic_train_repeat = critic_train_repeat
         self._max_train_repeat_per_timestep = max(
             max_train_repeat_per_timestep, n_train_repeat)
         self._train_every_n_steps = train_every_n_steps

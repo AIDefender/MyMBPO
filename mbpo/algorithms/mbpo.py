@@ -155,7 +155,7 @@ class MBPO(RLAlgorithm):
         assert len(action_shape) == 1, action_shape
         self._action_shape = action_shape
 
-        self._critic_train_repeat = kwargs["critic_train_repeat"]
+        # self._critic_train_repeat = kwargs["critic_train_repeat"]
         self._critic_train_freq = self._n_train_repeat // self._critic_train_repeat
 
         self._build()
