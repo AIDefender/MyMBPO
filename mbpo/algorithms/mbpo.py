@@ -66,6 +66,7 @@ class MBPO(RLAlgorithm):
             model_retain_epochs=20,
             rollout_batch_size=100e3,
             real_ratio=0.1,
+            critic_mb=True,
             rollout_schedule=[20,100,1,1],
             hidden_dim=200,
             max_model_t=None,
@@ -157,6 +158,7 @@ class MBPO(RLAlgorithm):
 
         # self._critic_train_repeat = kwargs["critic_train_repeat"]
         self._critic_train_freq = self._n_train_repeat // self._critic_train_repeat
+        self._critic_mb = critic_mb
 
         self._build()
 
@@ -672,13 +674,16 @@ class MBPO(RLAlgorithm):
         self._training_progress.set_description()
 
         mix_feed_dict = self._get_feed_dict(iteration, mix_batch)
-        mf_feed_dict = self._get_feed_dict(iteration, mf_batch)
+        if self._critic_mb:
+            critic_feed_dict = mix_feed_dict
+        else:
+            critic_feed_dict = self._get_feed_dict(iteration, mf_batch)
 
         self._session.run(self._misc_training_ops, mix_feed_dict)
         self._session.run(self._actor_training_ops, mix_feed_dict)
         # self._session.run(self._critic_training_ops, mix_feed_dict)
         if iteration % self._critic_train_freq == 0:
-            self._session.run(self._critic_training_ops, mf_feed_dict)
+            self._session.run(self._critic_training_ops, critic_feed_dict)
 
         if iteration % self._target_update_interval == 0:
             # Run target ops here.
