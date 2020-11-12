@@ -66,7 +66,7 @@ class MBPO(RLAlgorithm):
             model_retain_epochs=20,
             rollout_batch_size=100e3,
             real_ratio=0.1,
-            critic_mb=True,
+            critic_sample_same_as_actor=True,
             rollout_schedule=[20,100,1,1],
             hidden_dim=200,
             max_model_t=None,
@@ -92,6 +92,9 @@ class MBPO(RLAlgorithm):
             reparameterize ('bool'): If True, we use a gradient estimator for
                 the policy derived using the reparameterization trick. We use
                 a likelihood ratio based estimator otherwise.
+            critic_same_as_actor ('bool'): If True, use the same sampling schema
+                (model free or model based) as the actor in critic training. 
+                Otherwise, use model free sampling to train critic.
         """
 
         super(MBPO, self).__init__(**kwargs)
@@ -158,7 +161,7 @@ class MBPO(RLAlgorithm):
 
         # self._critic_train_repeat = kwargs["critic_train_repeat"]
         self._critic_train_freq = self._n_train_repeat // self._critic_train_repeat
-        self._critic_mb = critic_mb
+        self._critic_mb = critic_sample_same_as_actor
 
         self._build()
 

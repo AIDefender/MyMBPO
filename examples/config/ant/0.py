@@ -6,6 +6,7 @@ params = {
 
     'log_dir': '~/ray_mbpo/',
     'exp_name': 'defaults',
+    'seed': 42,
 
     'kwargs': {
         'epoch_length': 1000,
