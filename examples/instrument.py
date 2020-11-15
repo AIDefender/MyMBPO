@@ -211,6 +211,7 @@ def run_example_local(example_module_name, example_argv, local_mode=False):
         trainable_class, variant_spec, example_args)
     experiments = {experiment_id: experiment}
 
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     ray.init(
         num_cpus=example_args.cpus,
         num_gpus=example_args.gpus,
