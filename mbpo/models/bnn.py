@@ -47,9 +47,11 @@ class BNN:
         print('[ BNN ] Initializing model: {} | {} networks | {} elites'.format(params['name'], params['num_networks'], params['num_elites']))
         if params.get('sess', None) is None:
             config = tf.ConfigProto()
-            # config.gpu_options.allow_growth = True
+            config.gpu_options.allow_growth = True
+            # config.gpu_options.visible_device_list="1"
             self._sess = tf.Session(config=config)
         else:
+            assert 0
             self._sess = params.get('sess')
 
         # Instance variables

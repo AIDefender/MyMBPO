@@ -211,7 +211,6 @@ def run_example_local(example_module_name, example_argv, local_mode=False):
         trainable_class, variant_spec, example_args)
     experiments = {experiment_id: experiment}
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     ray.init(
         num_cpus=example_args.cpus,
         num_gpus=example_args.gpus,
@@ -220,6 +219,7 @@ def run_example_local(example_module_name, example_argv, local_mode=False):
         include_webui=example_args.include_webui,
         temp_dir=example_args.temp_dir)
 
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     tune.run_experiments(
         experiments,
         with_server=example_args.with_server,
