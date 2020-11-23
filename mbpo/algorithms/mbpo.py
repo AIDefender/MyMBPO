@@ -61,6 +61,7 @@ class MBPO(RLAlgorithm):
 
             deterministic=False,
             model_train_freq=250,
+            model_train_slower=1,
             num_networks=7,
             num_elites=5,
             model_retain_epochs=20,
@@ -162,6 +163,8 @@ class MBPO(RLAlgorithm):
         # self._critic_train_repeat = kwargs["critic_train_repeat"]
         self._critic_train_freq = self._n_train_repeat // self._critic_train_repeat
         self._critic_mb = critic_same_as_actor
+        self._model_train_slower = model_train_slower
+        self._origin_model_train_epochs = 0
 
         self._build()
 
@@ -230,15 +233,20 @@ class MBPO(RLAlgorithm):
                 gt.stamp('timestep_before_hook')
 
                 if self._timestep % self._model_train_freq == 0 and self._real_ratio < 1.0:
+                    
                     self._training_progress.pause()
                     print('[ MBPO ] log_dir: {} | ratio: {}'.format(self._log_dir, self._real_ratio))
-                    print('[ MBPO ] Training model at epoch {} | freq {} | timestep {} (total: {}) | epoch train steps: {} (total: {})'.format(
-                        self._epoch, self._model_train_freq, self._timestep, self._total_timestep, self._train_steps_this_epoch, self._num_train_steps)
+                    print('[ MBPO ] Training model at epoch {} | freq {} | timestep {} (total: {}) | epoch train steps: {} (total: {}) | times slower: {}'.format(
+                        self._epoch, self._model_train_freq, self._timestep, self._total_timestep, self._train_steps_this_epoch, self._num_train_steps, self._model_train_slower)
                     )
 
-                    model_train_metrics = self._train_model(batch_size=256, max_epochs=None, holdout_ratio=0.2, max_t=self._max_model_t)
-                    model_metrics.update(model_train_metrics)
-                    gt.stamp('epoch_train_model')
+                    self._origin_model_train_epochs += 1
+                    if self._origin_model_train_epochs % self._model_train_slower == 0:
+                        model_train_metrics = self._train_model(batch_size=256, max_epochs=None, holdout_ratio=0.2, max_t=self._max_model_t)
+                        model_metrics.update(model_train_metrics)
+                        gt.stamp('epoch_train_model')
+                    else:
+                        print('[ MBPO ] Skipping model training due to slowed training setting')
                     
                     self._set_rollout_length()
                     self._reallocate_model_pool()
