@@ -240,13 +240,13 @@ class MBPO(RLAlgorithm):
                         self._epoch, self._model_train_freq, self._timestep, self._total_timestep, self._train_steps_this_epoch, self._num_train_steps, self._model_train_slower)
                     )
 
-                    self._origin_model_train_epochs += 1
                     if self._origin_model_train_epochs % self._model_train_slower == 0:
                         model_train_metrics = self._train_model(batch_size=256, max_epochs=None, holdout_ratio=0.2, max_t=self._max_model_t)
                         model_metrics.update(model_train_metrics)
                         gt.stamp('epoch_train_model')
                     else:
                         print('[ MBPO ] Skipping model training due to slowed training setting')
+                    self._origin_model_train_epochs += 1
                     
                     self._set_rollout_length()
                     self._reallocate_model_pool()
