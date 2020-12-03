@@ -11,7 +11,7 @@ params = {
         'epoch_length': 1000,
         'train_every_n_steps': 1,
         'n_train_repeat': 10,
-        'critic_train_repeat': 1,
+        'critic_train_repeat': 10,
         'eval_render_mode': None,
         'eval_n_episodes': 1,
         'eval_deterministic': True,
@@ -21,6 +21,7 @@ params = {
         'reward_scale': 1.0,
 
         'model_train_freq': 250,
+        'model_train_slower': 100,
         'model_retain_epochs': 1,
         'rollout_batch_size': 100e3, # decrease it when debug
         'deterministic': False,
@@ -28,7 +29,7 @@ params = {
         'num_elites': 5,
         'real_ratio': 0.05,
         # 'actor_real_ratio': 1,
-        'critic_same_as_actor': False,
+        'critic_same_as_actor': True,
         'target_entropy': -3,
         'max_model_t': None,
         'rollout_schedule': [20, 150, 1, 1],
