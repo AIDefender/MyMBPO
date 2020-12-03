@@ -410,6 +410,7 @@ class MBPO(RLAlgorithm):
         batch = self.sampler.random_batch(rollout_batch_size // self._sample_repeat)
         obs = batch['observations']
         steps_added = []
+        sampled_actions = []
         for _ in range(self._sample_repeat):
             for i in range(self._rollout_length):
                 # TODO: alter policy distribution in different times of sample repeating
@@ -419,6 +420,7 @@ class MBPO(RLAlgorithm):
                 # print(self._policy._deterministic)
                 # print("=====================================")
                 act = self._policy.actions_np(obs)
+                sampled_actions.append(act)
                 
                 next_obs, rew, term, info = self.fake_env.step(obs, act, **kwargs)
                 steps_added.append(len(obs))
@@ -432,6 +434,7 @@ class MBPO(RLAlgorithm):
                     break
 
                 obs = next_obs[nonterm_mask]
+        print(sampled_actions)
 
         mean_rollout_length = sum(steps_added) / rollout_batch_size
         rollout_stats = {'mean_rollout_length': mean_rollout_length}
