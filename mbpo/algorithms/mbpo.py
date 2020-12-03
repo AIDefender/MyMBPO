@@ -405,24 +405,33 @@ class MBPO(RLAlgorithm):
         print('[ Model Rollout ] Starting | Epoch: {} | Rollout length: {} | Batch size: {}'.format(
             self._epoch, self._rollout_length, rollout_batch_size
         ))
-        batch = self.sampler.random_batch(rollout_batch_size)
+
+        # Keep total rollout sample complexity unchanged
+        batch = self.sampler.random_batch(rollout_batch_size // self._sample_repeat)
         obs = batch['observations']
         steps_added = []
-        for i in range(self._rollout_length):
-            act = self._policy.actions_np(obs)
-            
-            next_obs, rew, term, info = self.fake_env.step(obs, act, **kwargs)
-            steps_added.append(len(obs))
+        for _ in range(self._sample_repeat):
+            for i in range(self._rollout_length):
+                # TODO: alter policy distribution in different times of sample repeating
+                # self._policy: softlearning.policies.gaussian_policy.FeedforwardGaussianPolicy
+                # self._policy._deterministic: False
+                # print("=====================================")
+                # print(self._policy._deterministic)
+                # print("=====================================")
+                act = self._policy.actions_np(obs)
+                
+                next_obs, rew, term, info = self.fake_env.step(obs, act, **kwargs)
+                steps_added.append(len(obs))
 
-            samples = {'observations': obs, 'actions': act, 'next_observations': next_obs, 'rewards': rew, 'terminals': term}
-            self._model_pool.add_samples(samples)
+                samples = {'observations': obs, 'actions': act, 'next_observations': next_obs, 'rewards': rew, 'terminals': term}
+                self._model_pool.add_samples(samples)
 
-            nonterm_mask = ~term.squeeze(-1)
-            if nonterm_mask.sum() == 0:
-                print('[ Model Rollout ] Breaking early: {} | {} / {}'.format(i, nonterm_mask.sum(), nonterm_mask.shape))
-                break
+                nonterm_mask = ~term.squeeze(-1)
+                if nonterm_mask.sum() == 0:
+                    print('[ Model Rollout ] Breaking early: {} | {} / {}'.format(i, nonterm_mask.sum(), nonterm_mask.shape))
+                    break
 
-            obs = next_obs[nonterm_mask]
+                obs = next_obs[nonterm_mask]
 
         mean_rollout_length = sum(steps_added) / rollout_batch_size
         rollout_stats = {'mean_rollout_length': mean_rollout_length}
