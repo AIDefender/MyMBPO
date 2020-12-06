@@ -434,7 +434,7 @@ class MBPO(RLAlgorithm):
                     break
 
                 obs = next_obs[nonterm_mask]
-        print(sampled_actions)
+        # print(sampled_actions)
 
         mean_rollout_length = sum(steps_added) / rollout_batch_size
         rollout_stats = {'mean_rollout_length': mean_rollout_length}

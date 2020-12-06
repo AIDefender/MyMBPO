@@ -64,6 +64,11 @@ def add_command_line_args_to_variant_spec(variant_spec, command_line_args):
             if command_line_args.checkpoint_at_end is not None
             else variant_spec['run_params'].get('checkpoint_at_end', True)
         ),
+        'seed': (
+            command_line_args.seed
+            if command_line_args.seed is not None
+            else variant_spec['run_params'].get('seed', 0)
+        ),
     })
 
     variant_spec['restore'] = command_line_args.restore

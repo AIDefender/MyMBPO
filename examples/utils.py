@@ -185,6 +185,14 @@ def add_ray_tune_args(parser):
             " takes precedence over variant['run_params']"
             "['checkpoint_frequency']."))
     parser.add_argument(
+        '--seed',
+        type=int,
+        default=None,
+        help=tune_help_string(
+            "The seed of the experiment. If set,"
+            " takes precedence over variant['run_params']"
+            "['seed']."))
+    parser.add_argument(
         '--checkpoint-at-end',
         type=lambda x: bool(strtobool(x)),
         default=None,
