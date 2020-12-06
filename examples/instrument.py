@@ -115,6 +115,7 @@ def generate_experiment(trainable_class, variant_spec, command_line_args):
         'local_dir': local_dir,
         'num_samples': command_line_args.num_samples,
         'upload_dir': command_line_args.upload_dir,
+        'keep_checkpoints_num' : 5,
         'checkpoint_freq': (
             variant_spec['run_params']['checkpoint_frequency']),
         'checkpoint_at_end': (
