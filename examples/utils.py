@@ -178,7 +178,7 @@ def add_ray_tune_args(parser):
     parser.add_argument(
         '--checkpoint-frequency',
         type=int,
-        default=50,
+        default=30,
         help=tune_help_string(
             "How many training iterations between checkpoints."
             " A value of 0 (default) disables checkpointing. If set,"

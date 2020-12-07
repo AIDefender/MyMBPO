@@ -23,7 +23,7 @@ params = {
         'model_train_freq': 250,
         'model_retain_epochs': 1,
         'rollout_batch_size': 100e3,
-        'sample_repeat': 1, # repeatedly propose actions on one start state
+        'sample_repeat': 3, # repeatedly propose actions on one start state
         'deterministic': False,
         'num_networks': 7,
         'num_elites': 5,
