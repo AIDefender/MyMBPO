@@ -192,6 +192,13 @@ class ExperimentRunner(tune.Trainable):
         initial_exploration_policy = self.initial_exploration_policy = (
             get_policy('UniformPolicy', training_environment))
 
+
+        variant = copy.deepcopy(self._variant)
+
+        environment_params = variant['environment_params']
+        domain = environment_params['training']['domain']
+        static_fns = mbpo.static[domain.lower()]
+
         self.algorithm = get_algorithm_from_variant(
             variant=self._variant,
             training_environment=training_environment,
@@ -200,6 +207,7 @@ class ExperimentRunner(tune.Trainable):
             initial_exploration_policy=initial_exploration_policy,
             Qs=Qs,
             pool=replay_pool,
+            static_fns=static_fns,
             sampler=sampler,
             session=self._session)
         self.algorithm.__setstate__(picklable['algorithm'].__getstate__())
