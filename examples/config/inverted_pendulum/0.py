@@ -14,7 +14,7 @@ params = {
         'n_train_repeat': 10,
         'critic_train_repeat': 10,
         'eval_render_mode': None,
-        'eval_n_episodes': 1,
+        'eval_n_episodes': 10,
         'eval_deterministic': True,
 
         'discount': 0.99,

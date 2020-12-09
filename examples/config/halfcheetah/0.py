@@ -13,7 +13,7 @@ params = {
         'n_train_repeat': 40,
         'critic_train_repeat': 40,
         'eval_render_mode': None,
-        'eval_n_episodes': 1,
+        'eval_n_episodes': 10,
         'eval_deterministic': True,
 
         'discount': 0.99,
@@ -24,7 +24,7 @@ params = {
         'model_train_slower': 1,
         'model_retain_epochs': 1,
         'rollout_batch_size': 100e3, # decrease it when debug
-        'sample_repeat': 3, # repeatedly propose actions on one start state
+        'sample_repeat': 5, # repeatedly propose actions on one start state
         'deterministic': False,
         'num_networks': 7,
         'num_elites': 5,
