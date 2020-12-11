@@ -231,7 +231,7 @@ def run_example_local(example_module_name, example_argv, local_mode=False):
         # keep_checkpoint_num=5,
         # with_server=example_args.with_server,
         # server_port=4321,
-        resume=True,
+        resume = True if experiment['restore'] else False,
         scheduler=None)
 
 
