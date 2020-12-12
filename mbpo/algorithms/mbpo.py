@@ -64,6 +64,7 @@ class MBPO(RLAlgorithm):
             model_train_slower=1,
             num_networks=7,
             num_elites=5,
+            num_Q_elites=2,
             model_retain_epochs=20,
             rollout_batch_size=100e3,
             real_ratio=0.1,
@@ -128,7 +129,8 @@ class MBPO(RLAlgorithm):
         self._policy = policy
 
         self._Qs = Qs
-        # print(len(Qs))
+        self._Q_ensemble = len(Qs)
+        self._Q_elites = num_Q_elites
         self._Q_targets = tuple(tf.keras.models.clone_model(Q) for Q in Qs)
 
         self._pool = pool
@@ -162,7 +164,12 @@ class MBPO(RLAlgorithm):
         self._action_shape = action_shape
 
         # self._critic_train_repeat = kwargs["critic_train_repeat"]
+        # actor UTD should be n times larger or smaller than critic UTD
+        assert self._actor_train_repeat % self._critic_train_repeat == 0 or \
+               self._critic_train_repeat % self._actor_train_repeat == 0
+        self._n_train_repeat = max(self._actor_train_repeat, self._critic_train_repeat)
         self._critic_train_freq = self._n_train_repeat // self._critic_train_repeat
+        self._actor_train_freq = self._n_train_repeat // self._actor_train_repeat
         self._critic_mb = critic_same_as_actor
         self._model_train_slower = model_train_slower
         self._origin_model_train_epochs = 0
@@ -549,8 +556,10 @@ class MBPO(RLAlgorithm):
         next_Qs_values = tuple(
             Q([self._next_observations_ph, next_actions])
             for Q in self._Q_targets)
-
-        min_next_Q = tf.reduce_min(next_Qs_values, axis=0)
+        Qs_subset = np.random.choice(next_Qs_values, self._Q_elites, replace=False).tolist()
+        
+        # Line 8 of REDQ: min over M random indices
+        min_next_Q = tf.reduce_min(Qs_subset, axis=0)
         next_value = min_next_Q - self._alpha * next_log_pis
 
         Q_target = td_target(
@@ -650,12 +659,16 @@ class MBPO(RLAlgorithm):
         Q_log_targets = tuple(
             Q([self._observations_ph, actions])
             for Q in self._Qs)
+        assert len(Q_log_targets) == self._Q_ensemble
+
         min_Q_log_target = tf.reduce_min(Q_log_targets, axis=0)
+        mean_Q_log_target = tf.reduce_mean(Q_log_targets, axis=0)
 
         if self._reparameterize:
             policy_kl_losses = (
                 alpha * log_pis
-                - min_Q_log_target
+                # - min_Q_log_target
+                - mean_Q_log_target
                 - policy_prior_log_probs)
         else:
             raise NotImplementedError
@@ -703,14 +716,16 @@ class MBPO(RLAlgorithm):
         self._training_progress.set_description()
 
         mix_feed_dict = self._get_feed_dict(iteration, mix_batch)
+
         if self._critic_mb:
             critic_feed_dict = mix_feed_dict
         else:
             critic_feed_dict = self._get_feed_dict(iteration, mf_batch)
 
         self._session.run(self._misc_training_ops, mix_feed_dict)
-        self._session.run(self._actor_training_ops, mix_feed_dict)
-        # self._session.run(self._critic_training_ops, mix_feed_dict)
+
+        if iteration % self._actor_train_freq == 0:
+            self._session.run(self._actor_training_ops, mix_feed_dict)
         if iteration % self._critic_train_freq == 0:
             self._session.run(self._critic_training_ops, critic_feed_dict)
 

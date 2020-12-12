@@ -25,7 +25,7 @@ class RLAlgorithm(tf.contrib.checkpoint.Checkpointable):
             sampler,
             n_epochs=1000,
             train_every_n_steps=1,
-            n_train_repeat=1,
+            actor_train_repeat=1,
             critic_train_repeat=1,
             sample_repeat=1,
             max_train_repeat_per_timestep=5,
@@ -55,7 +55,7 @@ class RLAlgorithm(tf.contrib.checkpoint.Checkpointable):
         self.sampler = sampler
 
         self._n_epochs = n_epochs
-        self._n_train_repeat = n_train_repeat
+        self._actor_train_repeat = actor_train_repeat
         self._critic_train_repeat = critic_train_repeat
         self._sample_repeat = sample_repeat
         self._max_train_repeat_per_timestep = max(
