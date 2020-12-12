@@ -128,6 +128,7 @@ class MBPO(RLAlgorithm):
         self._policy = policy
 
         self._Qs = Qs
+        # print(len(Qs))
         self._Q_targets = tuple(tf.keras.models.clone_model(Q) for Q in Qs)
 
         self._pool = pool

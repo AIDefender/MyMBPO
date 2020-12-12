@@ -161,7 +161,9 @@ def get_variant_spec_base(universe, domain, task, policy, algorithm, env_params)
             'type': 'double_feedforward_Q_function',
             'kwargs': {
                 'hidden_layer_sizes': (M, M),
-            }
+            },
+            'Q_ensemble': 10,
+            'Q_elite': 2,
         },
         'algorithm_params': algorithm_params,
         'replay_pool_params': {
