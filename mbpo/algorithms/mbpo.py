@@ -167,7 +167,7 @@ class MBPO(RLAlgorithm):
         # actor UTD should be n times larger or smaller than critic UTD
         assert self._actor_train_repeat % self._critic_train_repeat == 0 or \
                self._critic_train_repeat % self._actor_train_repeat == 0
-        self._n_train_repeat = max(self._actor_train_repeat, self._critic_train_repeat)
+
         self._critic_train_freq = self._n_train_repeat // self._critic_train_repeat
         self._actor_train_freq = self._n_train_repeat // self._actor_train_repeat
         self._critic_mb = critic_same_as_actor

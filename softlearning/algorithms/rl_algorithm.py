@@ -57,6 +57,7 @@ class RLAlgorithm(tf.contrib.checkpoint.Checkpointable):
         self._n_epochs = n_epochs
         self._actor_train_repeat = actor_train_repeat
         self._critic_train_repeat = critic_train_repeat
+        self._n_train_repeat =  n_train_repeat = max(actor_train_repeat, critic_train_repeat)
         self._sample_repeat = sample_repeat
         self._max_train_repeat_per_timestep = max(
             max_train_repeat_per_timestep, n_train_repeat)
