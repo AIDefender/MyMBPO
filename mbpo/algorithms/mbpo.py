@@ -359,6 +359,7 @@ class MBPO(RLAlgorithm):
 
         q_std = []
         q_mean = []
+        policy_std = []
         for (s,a) in zip(obs, act):
             s, a = np.array(s).reshape(1, -1), np.array(a).reshape(1, -1)
             Qs = self._session.run(
@@ -368,10 +369,13 @@ class MBPO(RLAlgorithm):
                     self._actions_ph: a
                 }
             )
+            policy_std.append(self._policy.policy_log_scale_model.predict(s))
+
             q_std.append(np.std(Qs))
             q_mean.append(np.mean(Qs))
         print("Q mean: ", q_mean)
         print("Q std: ", q_std)
+        print("Policy std: ", policy_std)
         print("==========================================")
 
     def train(self, *args, **kwargs):

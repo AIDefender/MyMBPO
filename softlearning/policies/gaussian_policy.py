@@ -62,6 +62,11 @@ class GaussianPolicy(LatentSpacePolicy):
                 log_scale_diag, *SCALE_DIAG_MIN_MAX)
         )(log_scale_diag)
 
+        self.policy_log_scale_model = tf.keras.Model(
+            self.condition_inputs,
+            log_scale_diag
+        )
+
         batch_size = tf.keras.layers.Lambda(
             lambda x: tf.shape(x)[0])(conditions)
 

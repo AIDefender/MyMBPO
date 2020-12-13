@@ -8,10 +8,10 @@ params = {
     'exp_name': 'defaults',
 
     'kwargs': {
-        'epoch_length': 1000,
+        'epoch_length': 100,
         'train_every_n_steps': 1,
         'actor_train_repeat': 1,
-        'critic_train_repeat': 20,
+        'critic_train_repeat': 2,
         'eval_render_mode': None,
         'eval_n_episodes': 10,
         'eval_deterministic': True,
