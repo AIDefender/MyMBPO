@@ -215,6 +215,11 @@ def add_ray_tune_args(parser):
             "Path to checkpoint. Only makes sense to set if running 1 trial."
             " Defaults to None."))
     parser.add_argument(
+        '--Q_ensemble',
+        default=10,
+        type=int,
+    )
+    parser.add_argument(
         '--with-server',
         type=str,
         default=False,

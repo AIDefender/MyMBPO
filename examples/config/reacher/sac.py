@@ -15,7 +15,7 @@ params = {
         'eval_render_mode': None,
         'eval_n_episodes': 10,
         'eval_deterministic': True,
-TODO: set Q ensemble size in config file to run sac
+
         'discount': 0.99,
         'tau': 5e-3,
         'reward_scale': 1.0,

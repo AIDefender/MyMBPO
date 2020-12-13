@@ -70,6 +70,11 @@ def add_command_line_args_to_variant_spec(variant_spec, command_line_args):
             else variant_spec['run_params'].get('seed', 0)
         ),
     })
+    variant_spec['Q_params'].update({
+        'Q_ensemble': (
+            command_line_args.Q_ensemble
+        )
+    })
 
     variant_spec['restore'] = command_line_args.restore
 
