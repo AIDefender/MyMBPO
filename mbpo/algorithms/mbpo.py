@@ -228,6 +228,8 @@ class MBPO(RLAlgorithm):
             self._epoch_before_hook()
             gt.stamp('epoch_before_hook')
 
+            self._evaluate_exploration()
+
             self._training_progress = Progress(self._epoch_length * self._n_train_repeat)
             start_samples = self.sampler._total_samples
             for i in count():
@@ -337,6 +339,7 @@ class MBPO(RLAlgorithm):
                     evaluation_environment, 'render_rollouts'):
                 training_environment.render_rollouts(evaluation_paths)
 
+
             yield diagnostics
 
         self.sampler.terminate()
@@ -346,6 +349,30 @@ class MBPO(RLAlgorithm):
         self._training_progress.close()
 
         yield {'done': True, **diagnostics}
+    
+    def _evaluate_exploration(self):
+        print("=============evaluate exploration=========")
+        evaluation_size = 10
+        batch = self.sampler.random_batch(evaluation_size)
+        obs = batch['observations']
+        act = batch['actions']
+
+        q_std = []
+        q_mean = []
+        for (s,a) in zip(obs, act):
+            s, a = np.array(s).reshape(1, -1), np.array(a).reshape(1, -1)
+            Qs = self._session.run(
+                self._Q_values,
+                feed_dict = {
+                    self._observations_ph: s,
+                    self._actions_ph: a
+                }
+            )
+            q_std.append(np.std(Qs))
+            q_mean.append(np.mean(Qs))
+        print("Q mean: ", q_mean)
+        print("Q std: ", q_std)
+        print("==========================================")
 
     def train(self, *args, **kwargs):
         return self._train(*args, **kwargs)
