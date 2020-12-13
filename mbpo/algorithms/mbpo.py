@@ -663,12 +663,12 @@ class MBPO(RLAlgorithm):
 
         min_Q_log_target = tf.reduce_min(Q_log_targets, axis=0)
         mean_Q_log_target = tf.reduce_mean(Q_log_targets, axis=0)
+        Q_target = min_Q_log_target if self._Q_ensemble == 2 else mean_Q_log_target
 
         if self._reparameterize:
             policy_kl_losses = (
                 alpha * log_pis
-                # - min_Q_log_target
-                - mean_Q_log_target
+                - Q_target
                 - policy_prior_log_probs)
         else:
             raise NotImplementedError
