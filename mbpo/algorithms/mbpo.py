@@ -355,6 +355,10 @@ class MBPO(RLAlgorithm):
     
     def _evaluate_exploration(self):
         print("=============evaluate exploration=========")
+        data_dir = "/home/xuezh/Research/mbpo/mbpo_experiment/data"
+        exp_name = "reacher-30.pkl"
+        path = os.path.join(data_dir, exp_name)
+
         evaluation_size = 10000
         action_repeat = 10
         batch = self.sampler.random_batch(evaluation_size)
@@ -383,9 +387,16 @@ class MBPO(RLAlgorithm):
 
         policy_std = [np.prod(self._policy.policy_log_scale_model.predict(np.array(s).reshape(1,-1))) for s in obs]
 
-        for (ob, uncert, ent) in zip(obs, q_std, policy_std):
-            print(ob, uncert, ent)
+        data = {
+            'obs': obs,
+            'q_std': q_std,
+            'pi_std': policy_std
+        }
+        with open(path, 'wb') as f:
+            pickle.dump(data, f)
         print("==========================================")
+
+        raise KeyboardInterrupt
 
     def train(self, *args, **kwargs):
         return self._train(*args, **kwargs)
