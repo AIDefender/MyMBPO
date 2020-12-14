@@ -104,7 +104,7 @@ class MBPO(RLAlgorithm):
         obs_dim = np.prod(training_environment.observation_space.shape)
         if obs_dim == None:
             obs_dim = sum([i.shape[0] for i in training_environment.observation_space.spaces.values()])
-            print(obs_dim)
+
         act_dim = np.prod(training_environment.action_space.shape)
         self._model = construct_model(obs_dim=obs_dim, act_dim=act_dim, hidden_dim=hidden_dim, num_networks=num_networks, num_elites=num_elites)
         self._static_fns = static_fns
@@ -231,7 +231,7 @@ class MBPO(RLAlgorithm):
             self._epoch_before_hook()
             gt.stamp('epoch_before_hook')
 
-            # self._evaluate_exploration()
+            self._evaluate_exploration()
 
             self._training_progress = Progress(self._epoch_length * self._n_train_repeat)
             start_samples = self.sampler._total_samples
@@ -355,30 +355,36 @@ class MBPO(RLAlgorithm):
     
     def _evaluate_exploration(self):
         print("=============evaluate exploration=========")
-        evaluation_size = 10
+        evaluation_size = 10000
+        action_repeat = 10
         batch = self.sampler.random_batch(evaluation_size)
         obs = batch['observations']
-        act = batch['actions']
+        actions_repeat = [self._policy.actions_np(obs) for _ in range(action_repeat)]
 
-        q_std = []
-        q_mean = []
+        Qs = []
         policy_std = []
-        for (s,a) in zip(obs, act):
-            s, a = np.array(s).reshape(1, -1), np.array(a).reshape(1, -1)
-            Qs = self._session.run(
-                self._Q_values,
-                feed_dict = {
-                    self._observations_ph: s,
-                    self._actions_ph: a
-                }
-            )
-            policy_std.append(self._policy.policy_log_scale_model.predict(s))
+        for action in actions_repeat:
+            Q = []
+            for (s,a) in zip(obs, action):
+                s, a = np.array(s).reshape(1, -1), np.array(a).reshape(1, -1)
+                Q.append(
+                    self._session.run(
+                        self._Q_values,
+                        feed_dict = {
+                            self._observations_ph: s,
+                            self._actions_ph: a
+                        }
+                    )
+                )
+            Qs.append(Q)
+        Qs = np.array(Qs).squeeze()
+        Qs_mean_action = np.mean(Qs, axis = 0)
+        q_std = np.std(Qs_mean_action, axis=1)
 
-            q_std.append(np.std(Qs))
-            q_mean.append(np.mean(Qs))
-        print("Q mean: ", q_mean)
-        print("Q std: ", q_std)
-        print("Policy std: ", policy_std)
+        policy_std = [np.prod(self._policy.policy_log_scale_model.predict(np.array(s).reshape(1,-1))) for s in obs]
+
+        for (ob, uncert, ent) in zip(obs, q_std, policy_std):
+            print(ob, uncert, ent)
         print("==========================================")
 
     def train(self, *args, **kwargs):
