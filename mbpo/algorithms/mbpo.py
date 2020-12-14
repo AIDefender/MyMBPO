@@ -102,6 +102,9 @@ class MBPO(RLAlgorithm):
         super(MBPO, self).__init__(**kwargs)
 
         obs_dim = np.prod(training_environment.observation_space.shape)
+        if obs_dim == None:
+            obs_dim = sum([i.shape[0] for i in training_environment.observation_space.spaces.values()])
+            print(obs_dim)
         act_dim = np.prod(training_environment.action_space.shape)
         self._model = construct_model(obs_dim=obs_dim, act_dim=act_dim, hidden_dim=hidden_dim, num_networks=num_networks, num_elites=num_elites)
         self._static_fns = static_fns
@@ -228,7 +231,7 @@ class MBPO(RLAlgorithm):
             self._epoch_before_hook()
             gt.stamp('epoch_before_hook')
 
-            self._evaluate_exploration()
+            # self._evaluate_exploration()
 
             self._training_progress = Progress(self._epoch_length * self._n_train_repeat)
             start_samples = self.sampler._total_samples
