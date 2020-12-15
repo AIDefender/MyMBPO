@@ -114,6 +114,7 @@ vis/
 tmp/
 vendor/*
 .pkl
+*.csv
 
 
 .mujoco/
