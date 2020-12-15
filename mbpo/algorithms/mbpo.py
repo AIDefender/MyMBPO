@@ -356,7 +356,7 @@ class MBPO(RLAlgorithm):
     def _evaluate_exploration(self):
         print("=============evaluate exploration=========")
         data_dir = "/home/xuezh/Research/mbpo/mbpo_experiment/data"
-        exp_name = "reacher-30.pkl"
+        exp_name = "reacher-60.pkl"
         path = os.path.join(data_dir, exp_name)
 
         evaluation_size = 10000
@@ -385,7 +385,7 @@ class MBPO(RLAlgorithm):
         Qs_mean_action = np.mean(Qs, axis = 0)
         q_std = np.std(Qs_mean_action, axis=1)
 
-        policy_std = [np.prod(self._policy.policy_log_scale_model.predict(np.array(s).reshape(1,-1))) for s in obs]
+        policy_std = [np.prod(np.exp(self._policy.policy_log_scale_model.predict(np.array(s).reshape(1,-1)))) for s in obs]
 
         data = {
             'obs': obs,
