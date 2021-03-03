@@ -32,11 +32,12 @@ def plot(data, style = 'reacher'):
     grp_df.to_csv("mean.csv")
     grp_df_var.to_csv("var.csv")
     grp_df_count.to_csv("count.csv")
-    grp_df.drop(labels="dist", axis=1)
 
     x = np.array(list(range(len(grp_df['q_std']))))/dist_scale
     plt.plot(x, grp_df['q_std'], label = "std of ensembled Q")
     plt.plot(x, grp_df['pi_std'] * 10, label = "std of policy(10x)")
+    # plt.plot(x, grp_df['pi_std'], label = "std of policy")
+    plt.plot(x, np.log(grp_df_count['dist']) * 0.1, label = "log Count(0.1x)")
     plt.legend()
     plt.xlabel("Distance from target")
     plt.ylabel("Value")
