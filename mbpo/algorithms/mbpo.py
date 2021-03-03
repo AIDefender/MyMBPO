@@ -231,7 +231,7 @@ class MBPO(RLAlgorithm):
             self._epoch_before_hook()
             gt.stamp('epoch_before_hook')
 
-            self._evaluate_exploration()
+            # self._evaluate_exploration()
 
             self._training_progress = Progress(self._epoch_length * self._n_train_repeat)
             start_samples = self.sampler._total_samples
