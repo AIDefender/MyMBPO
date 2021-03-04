@@ -9,6 +9,10 @@ MBPO_ENVIRONMENT_SPECS = (
         'id': 'HumanoidTruncatedObs-v2',
         'entry_point': (f'mbpo.env.humanoid:HumanoidTruncatedObsEnv'),
     },
+    {
+        'id': 'ContinuousGrid-v0',
+        'entry_point': (f'mbpo.env.continuous_grid:ContinuousGridEnv')
+    }
 )
 
 def register_mbpo_environments():
