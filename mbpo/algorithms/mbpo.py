@@ -386,8 +386,8 @@ class MBPO(RLAlgorithm):
                 )
             Qs.append(Q)
         Qs = np.array(Qs).squeeze()
-        Qs_mean_action = np.mean(Qs, axis = 0)
-        q_std = np.std(Qs_mean_action, axis=1)
+        Qs_mean_action = np.mean(Qs, axis = 0) # Compute mean across different actions of one given state.
+        q_std = np.std(Qs_mean_action, axis=1) # In fact V std
 
         policy_std = [np.prod(np.exp(self._policy.policy_log_scale_model.predict(np.array(s).reshape(1,-1)))) for s in obs]
 
