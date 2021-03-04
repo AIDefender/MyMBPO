@@ -3,9 +3,12 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 sns.set()
 
+
 def plot(data, style = 'reacher'):
+    this_scale = scales[EXP_INDEX]
 
     df = pd.DataFrame(data['obs'])
     
@@ -34,19 +37,40 @@ def plot(data, style = 'reacher'):
     grp_df_count.to_csv("count.csv")
 
     x = np.array(list(range(len(grp_df['q_std']))))/dist_scale
-    plt.plot(x, grp_df['q_std'], label = "std of ensembled Q")
-    plt.plot(x, grp_df['pi_std'] * 10, label = "std of policy(10x)")
+    plt.plot(x, grp_df['q_std'] * this_scale["q_std"], label = "std of ensembled Q")
+    plt.plot(x, grp_df['pi_std'] * this_scale["pi_std"], label = "std of policy(10x)")
     # plt.plot(x, grp_df['pi_std'], label = "std of policy")
-    plt.plot(x, np.log(grp_df_count['dist']) * 0.1, label = "log Count(0.1x)")
+    plt.plot(x, np.log(grp_df_count['dist']) * this_scale["cnt"], label = "log Count(%.1fx)"%this_scale["cnt"])
     plt.legend()
     plt.xlabel("Distance from target")
     plt.ylabel("Value")
-    plt.title("Comparison of Q and policy std on env Reacher-v2, checkpoint 60")
+    plt.title("Comparison of Q and policy std on env Reacher-v2, checkpoint %s"%EXP_INDEX)
 
-    plt.savefig("reacher-60.png")
+    plt.savefig("plot.png")
 
-# with open("data/fetch-40.pkl", 'rb') as f:
-with open("data/reacher-60.pkl", 'rb') as f:
+EXP_NAME = "reacher"
+EXP_INDEX = "20"
+SAVE_PATH="%s-%s"%(EXP_NAME, EXP_INDEX)
+if not os.path.isdir(SAVE_PATH):
+    os.mkdir(SAVE_PATH)
+scales = {
+    "5": {
+        "q_std": 1,
+        "pi_std": 1,
+        "cnt": 0.1
+    },
+    "10": {
+        "q_std": 1,
+        "pi_std": 10,
+        "cnt": 0.1
+    },
+    "20": {
+        "q_std": 1,
+        "pi_std": 10,
+        "cnt": 0.1
+    },
+}
+with open("data/%s.pkl"%SAVE_PATH, 'rb') as f:
     data = pickle.load(f)
-
-plot(data, style='reacher')
+os.chdir(SAVE_PATH)
+plot(data, style=EXP_NAME)
