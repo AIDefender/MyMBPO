@@ -17,10 +17,13 @@ def construct_model(obs_dim=11, act_dim=3, rew_dim=1, hidden_dim=200, num_networ
 	model.finalize(tf.train.AdamOptimizer, {"learning_rate": 0.001})
 	return model
 
-def format_samples_for_training(samples):
-	obs = samples['observations']
+def concat_samples(samples, key):
+	return np.hstack((samples[key+'.observation'], samples[key+'.achieved_goal'], samples[key+'.desired_goal']))
+
+def format_samples_for_training(samples, multi_goal=False):
+	obs = concat_samples(samples, 'observations') if multi_goal else samples['observations']
 	act = samples['actions']
-	next_obs = samples['next_observations']
+	next_obs = concat_samples(samples, 'next_observations') if multi_goal else samples['next_observations']
 	rew = samples['rewards']
 	delta_obs = next_obs - obs
 	inputs = np.concatenate((obs, act), axis=-1)

@@ -101,9 +101,13 @@ class MBPO(RLAlgorithm):
 
         super(MBPO, self).__init__(**kwargs)
 
-        obs_dim = np.prod(training_environment.observation_space.shape)
-        if obs_dim == None:
-            obs_dim = sum([i.shape[0] for i in training_environment.observation_space.spaces.values()])
+        if training_environment.unwrapped.spec.id.find("Fetch") != -1:
+            # Fetch env
+            obs_dim = sum([i.shape[0] for i in training_environment.observation_space.spaces.values()]) 
+            self.multigoal = 1
+        else:
+            obs_dim = np.prod(training_environment.observation_space.shape)
+        # print("====", obs_dim, "========")
 
         act_dim = np.prod(training_environment.action_space.shape)
         self._model = construct_model(obs_dim=obs_dim, act_dim=act_dim, hidden_dim=hidden_dim, num_networks=num_networks, num_elites=num_elites)
@@ -456,7 +460,7 @@ class MBPO(RLAlgorithm):
 
     def _train_model(self, **kwargs):
         env_samples = self._pool.return_all_samples()
-        train_inputs, train_outputs = format_samples_for_training(env_samples)
+        train_inputs, train_outputs = format_samples_for_training(env_samples, self.multigoal)
         model_metrics = self._model.train(train_inputs, train_outputs, **kwargs)
         return model_metrics
 
