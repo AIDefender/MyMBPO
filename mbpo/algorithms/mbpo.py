@@ -235,7 +235,7 @@ class MBPO(RLAlgorithm):
             self._epoch_before_hook()
             gt.stamp('epoch_before_hook')
 
-            # self._evaluate_exploration()
+            self._evaluate_exploration()
 
             self._training_progress = Progress(self._epoch_length * self._n_train_repeat)
             start_samples = self.sampler._total_samples
@@ -359,12 +359,12 @@ class MBPO(RLAlgorithm):
     
     def _evaluate_exploration(self):
         print("=============evaluate exploration=========")
-        data_dir = "/home/xuezh/Research/mbpo/mbpo_experiment/data"
-        exp_name = "reacher-60.pkl"
+        data_dir = "/home/linus/Research/mbpo/mbpo_experiment/exploration_eval/grid_data"
+        exp_name = "60.pkl"
         path = os.path.join(data_dir, exp_name)
 
         evaluation_size = 10000
-        action_repeat = 10
+        action_repeat = 20
         batch = self.sampler.random_batch(evaluation_size)
         obs = batch['observations']
         actions_repeat = [self._policy.actions_np(obs) for _ in range(action_repeat)]
