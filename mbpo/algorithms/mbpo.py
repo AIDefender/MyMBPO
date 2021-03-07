@@ -72,6 +72,8 @@ class MBPO(RLAlgorithm):
             rollout_schedule=[20,100,1,1],
             hidden_dim=200,
             max_model_t=None,
+            dir_name=None,
+            evaluate_explore_freq=0,
             **kwargs,
     ):
         """
@@ -181,6 +183,9 @@ class MBPO(RLAlgorithm):
         self._model_train_slower = model_train_slower
         self._origin_model_train_epochs = 0
 
+        self._dir_name = dir_name
+        self._evaluate_explore_freq = evaluate_explore_freq
+
         self._build()
 
     def _build(self):
@@ -235,7 +240,8 @@ class MBPO(RLAlgorithm):
             self._epoch_before_hook()
             gt.stamp('epoch_before_hook')
 
-            self._evaluate_exploration()
+            if self._evaluate_explore_freq != 0 and self._epoch % self._evaluate_explore_freq == 0:
+                self._evaluate_exploration()
 
             self._training_progress = Progress(self._epoch_length * self._n_train_repeat)
             start_samples = self.sampler._total_samples
@@ -359,11 +365,20 @@ class MBPO(RLAlgorithm):
     
     def _evaluate_exploration(self):
         print("=============evaluate exploration=========")
-        data_dir = "/home/linus/Research/mbpo/mbpo_experiment/exploration_eval/grid_data"
-        exp_name = "60.pkl"
+
+        # specify data dir
+        base_dir = "/home/linus/Research/mbpo/mbpo_experiment/exploration_eval"
+        if not self._dir_name:
+            return
+        data_dir = os.path.join(base_dir, self._dir_name)
+        if not os.path.isdir(data_dir):
+            os.mkdir(data_dir)
+
+        # specify data name
+        exp_name = "%d.pkl"%self._epoch
         path = os.path.join(data_dir, exp_name)
 
-        evaluation_size = 10000
+        evaluation_size = 3000
         action_repeat = 20
         batch = self.sampler.random_batch(evaluation_size)
         obs = batch['observations']
@@ -400,7 +415,6 @@ class MBPO(RLAlgorithm):
             pickle.dump(data, f)
         print("==========================================")
 
-        raise KeyboardInterrupt
 
     def train(self, *args, **kwargs):
         return self._train(*args, **kwargs)
