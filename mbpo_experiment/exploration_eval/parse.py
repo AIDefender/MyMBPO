@@ -39,6 +39,7 @@ def plot(data, style = 'reacher'):
     grp_df_count.to_csv("count.csv")
 
     x = np.array(list(range(len(grp_df['q_std']))))/dist_scale
+    plt.ylim([0.3, 2.5])
     plt.plot(x, grp_df['q_std'] * this_scale["q_std"], label = "std of ensembled Q(100x)")
     plt.plot(x, grp_df['pi_std'] * this_scale["pi_std"], label = "std of policy(1x)")
     # plt.plot(x, grp_df['pi_std'], label = "std of policy")
@@ -52,7 +53,7 @@ def plot(data, style = 'reacher'):
 
 # EXP_NAME = "reacher"
 EXP_NAME = "grid"
-EXP_INDEX = "55"
+EXP_INDEX = "10"
 SAVE_PATH="%s-%s"%(EXP_NAME, EXP_INDEX)
 if not os.path.isdir(SAVE_PATH):
     os.mkdir(SAVE_PATH)
