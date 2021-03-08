@@ -64,7 +64,7 @@ class MBPO(RLAlgorithm):
             model_train_slower=1,
             num_networks=7,
             num_elites=5,
-            num_Q_elites=2,
+            num_Q_elites=2, # The num of Q ensemble is set in command line
             model_retain_epochs=20,
             rollout_batch_size=100e3,
             real_ratio=0.1,
@@ -74,6 +74,9 @@ class MBPO(RLAlgorithm):
             max_model_t=None,
             dir_name=None,
             evaluate_explore_freq=0,
+            num_Q_per_grp=2,
+            num_Q_grp=1,
+            cross_grp_diff_batch=False,
             **kwargs,
     ):
         """
@@ -179,19 +182,25 @@ class MBPO(RLAlgorithm):
 
         self._critic_train_freq = self._n_train_repeat // self._critic_train_repeat
         self._actor_train_freq = self._n_train_repeat // self._actor_train_repeat
-        self._critic_mb = critic_same_as_actor
+        self._critic_same_as_actor = critic_same_as_actor
         self._model_train_slower = model_train_slower
         self._origin_model_train_epochs = 0
 
         self._dir_name = dir_name
         self._evaluate_explore_freq = evaluate_explore_freq
 
+        # Inter-group Qs are trained with the same data; Cross-group Qs different.
+        self._num_Q_per_grp = num_Q_per_grp
+        self._num_Q_grp = num_Q_grp
+        self._cross_grp_diff_batch = cross_grp_diff_batch
+
         self._build()
 
     def _build(self):
         self._training_ops = {}
         self._actor_training_ops = {}
-        self._critic_training_ops = {}
+        self._critic_training_ops = {} if not self._cross_grp_diff_batch else \
+                                    [{} for _ in range(self._num_Q_grp)]
         self._misc_training_ops = {} # basically no feeddict is needed
         # device = "/device:GPU:1"
         # with tf.device(device):
@@ -539,8 +548,10 @@ class MBPO(RLAlgorithm):
         model_batch_size = batch_size - env_batch_size
 
         ## can sample from the env pool even if env_batch_size == 0
-        env_batch = self._pool.random_batch(env_batch_size)
-        mf_batch = self._pool.random_batch(batch_size)
+        if self._cross_grp_diff_batch:
+            env_batch = [self._pool.random_batch(env_batch_size) for _ in range(self._num_Q_grp)]
+        else:
+            env_batch = self._pool.random_batch(env_batch_size)
 
         if model_batch_size > 0:
             model_batch = self._model_pool.random_batch(model_batch_size)
@@ -551,7 +562,7 @@ class MBPO(RLAlgorithm):
             ## if real_ratio == 1.0, no model pool was ever allocated,
             ## so skip the model pool sampling
             batch = env_batch
-        return batch, mf_batch
+        return batch, env_batch
 
     def _init_global_step(self):
         self.global_step = training_util.get_or_create_global_step()
@@ -663,6 +674,8 @@ class MBPO(RLAlgorithm):
                 learning_rate=self._Q_lr,
                 name='{}_{}_optimizer'.format(Q._name, i)
             ) for i, Q in enumerate(self._Qs))
+
+        # TODO: divide it to N separate ops, where N is # of Q grps
         Q_training_ops = tuple(
             tf.contrib.layers.optimize_loss(
                 Q_loss,
@@ -678,7 +691,18 @@ class MBPO(RLAlgorithm):
             in enumerate(zip(self._Qs, Q_losses, self._Q_optimizers)))
 
         self._training_ops.update({'Q': tf.group(Q_training_ops)})
-        self._critic_training_ops.update({'Q': tf.group(Q_training_ops)})
+        if self._cross_grp_diff_batch:
+            assert len(Q_training_ops) >= self._num_Q_grp * self._num_Q_per_grp
+            for i in range(self._num_Q_grp - 1):
+                self._critic_training_ops[i].update({
+                    'Q': tf.group(Q_training_ops[i * self._num_Q_grp: (i+1) * self._num_Q_grp])
+                })
+
+            self._critic_training_ops[self._num_Q_grp - 1].update({
+                'Q': tf.group(Q_training_ops[(self._num_Q_grp - 1) * self._num_Q_grp:])
+            })
+        else:
+            self._critic_training_ops.update({'Q': tf.group(Q_training_ops)})
 
     def _init_actor_update(self):
         """Create minimization operations for policy and entropy.
@@ -784,19 +808,35 @@ class MBPO(RLAlgorithm):
         self._training_progress.update()
         self._training_progress.set_description()
 
-        mix_feed_dict = self._get_feed_dict(iteration, mix_batch)
+        if self._cross_grp_diff_batch:
+            assert len(mix_batch) == self._num_Q_grp
+            if self._real_ratio != 1:
+                assert 0, "Currently different batch is not supported in MBPO"
+            mix_feed_dict = [self._get_feed_dict(iteration, i) for i in mix_batch]
+            single_mix_feed_dict = mix_feed_dict[0]
+        else:
+            mix_feed_dict = self._get_feed_dict(iteration, mix_batch)
+            single_mix_feed_dict = mix_feed_dict
 
-        if self._critic_mb:
+
+        if self._critic_same_as_actor:
             critic_feed_dict = mix_feed_dict
         else:
             critic_feed_dict = self._get_feed_dict(iteration, mf_batch)
 
-        self._session.run(self._misc_training_ops, mix_feed_dict)
+        self._session.run(self._misc_training_ops, single_mix_feed_dict)
 
         if iteration % self._actor_train_freq == 0:
-            self._session.run(self._actor_training_ops, mix_feed_dict)
+            self._session.run(self._actor_training_ops, single_mix_feed_dict)
         if iteration % self._critic_train_freq == 0:
-            self._session.run(self._critic_training_ops, critic_feed_dict)
+            if self._cross_grp_diff_batch:
+                assert len(self._critic_training_ops) == len(critic_feed_dict)
+                [
+                    self._session.run(op, feed_dict)
+                    for (op, feed_dict) in zip(self._critic_training_ops, critic_feed_dict)
+                ]
+            else:
+                self._session.run(self._critic_training_ops, critic_feed_dict)
 
         if iteration % self._target_update_interval == 0:
             # Run target ops here.
@@ -835,10 +875,10 @@ class MBPO(RLAlgorithm):
 
         Also calls the `draw` method of the plotter, if plotter defined.
         """
-        #TODO: modify
-        mix_batch, mf_batch = batch
+        mix_batch, _ = batch
+        if self._cross_grp_diff_batch:
+            mix_batch = mix_batch[0]
         mix_feed_dict = self._get_feed_dict(iteration, mix_batch)
-        mf_feed_dict = self._get_feed_dict(iteration, mf_batch)
 
         # (Q_values, Q_losses, alpha, global_step) = self._session.run(
         #     (self._Q_values,
@@ -848,7 +888,7 @@ class MBPO(RLAlgorithm):
         #     feed_dict)
         Q_values, Q_losses = self._session.run(
             [self._Q_values, self._Q_losses],
-            mf_feed_dict
+            mix_feed_dict
         )
 
         alpha, global_step = self._session.run(

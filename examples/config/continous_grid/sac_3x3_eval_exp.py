@@ -33,8 +33,12 @@ params = {
         'max_model_t': None,
         'rollout_schedule': [20, 150, 1, 15],
 
+        'num_Q_per_grp': 3,
+        'num_Q_grp': 3,
+        'cross_grp_diff_batch': True,
+
         # params for evaluating exploration
-        'dir_name': "grid_sac_data",
+        'dir_name': "grid_sac3x3_data",
         'evaluate_explore_freq': 5,
     }
 }

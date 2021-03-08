@@ -218,6 +218,9 @@ def add_ray_tune_args(parser):
         '--Q_ensemble',
         default=10,
         type=int,
+        help=tune_help_string(
+            "The number of Q elites is set in config file"
+        )
     )
     parser.add_argument(
         '--with-server',
