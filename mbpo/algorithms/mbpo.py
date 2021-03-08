@@ -411,15 +411,29 @@ class MBPO(RLAlgorithm):
             Qs.append(Q)
         Qs = np.array(Qs).squeeze()
         Qs_mean_action = np.mean(Qs, axis = 0) # Compute mean across different actions of one given state.
-        q_std = np.std(Qs_mean_action, axis=1) # In fact V std
+        if self._cross_grp_diff_batch:
+            inter_grp_q_stds = [np.std(Qs_mean_action[:, i * self._num_Q_per_grp:(i+1) * self._num_Q_per_grp], axis = 1) for i in range(self._num_Q_grp)]
+            mean_inter_grp_q_std = np.mean(np.array(inter_grp_q_stds), axis = 0)
+            min_qs_per_grp = [np.min(Qs_mean_action[:, i * self._num_Q_per_grp:(i+1) * self._num_Q_per_grp], axis = 1) for i in range(self._num_Q_grp)]
+            cross_grp_std = np.std(np.array(min_qs_per_grp), axis = 0)
+        else:
+            q_std = np.std(Qs_mean_action, axis=1) # In fact V std
 
         policy_std = [np.prod(np.exp(self._policy.policy_log_scale_model.predict(np.array(s).reshape(1,-1)))) for s in obs]
 
-        data = {
-            'obs': obs,
-            'q_std': q_std,
-            'pi_std': policy_std
-        }
+        if self._cross_grp_diff_batch:
+            data = { 
+                'obs': obs,
+                'inter_q_std': mean_inter_grp_q_std,
+                'cross_q_std': cross_grp_std,
+                'pi_std': policy_std
+            }
+        else:
+            data = {
+                'obs': obs,
+                'q_std': q_std,
+                'pi_std': policy_std
+            }
         with open(path, 'wb') as f:
             pickle.dump(data, f)
         print("==========================================")

@@ -37,7 +37,7 @@ params = {
         'num_Q_grp': 3,
         'cross_grp_diff_batch': True,
 
-        'dir_name': "reacher_sac3x3_data",
+        'dir_name': "reacher_sac3x3distinct_data",
         'evaluate_explore_freq': 5,
     }
 }
