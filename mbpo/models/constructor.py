@@ -4,16 +4,21 @@ import tensorflow as tf
 from mbpo.models.fc import FC
 from mbpo.models.bnn import BNN
 
-def construct_model(obs_dim=11, act_dim=3, rew_dim=1, hidden_dim=200, num_networks=7, num_elites=5, session=None):
+def construct_model(obs_dim=11, act_dim=3, rew_dim=1, hidden_dim=200, num_networks=7, 
+					num_elites=5, session=None, model_dir=None, model_load_timestep=None, load_model=False):
 	print('[ BNN ] Observation dim {} | Action dim: {} | Hidden dim: {}'.format(obs_dim, act_dim, hidden_dim))
-	params = {'name': 'BNN', 'num_networks': num_networks, 'num_elites': num_elites, 'sess': session}
+
+	name = 'BNN' if not model_load_timestep else 'BNN_'+str(model_load_timestep)
+	params = {'name': name, 'num_networks': num_networks, 'num_elites': num_elites, 
+			  'sess': session, 'model_dir': model_dir, 'load_model': load_model}
 	model = BNN(params)
 
-	model.add(FC(hidden_dim, input_dim=obs_dim+act_dim, activation="swish", weight_decay=0.000025))
-	model.add(FC(hidden_dim, activation="swish", weight_decay=0.00005))
-	model.add(FC(hidden_dim, activation="swish", weight_decay=0.000075))
-	model.add(FC(hidden_dim, activation="swish", weight_decay=0.000075))
-	model.add(FC(obs_dim+rew_dim, weight_decay=0.0001))
+	if not load_model:
+		model.add(FC(hidden_dim, input_dim=obs_dim+act_dim, activation="swish", weight_decay=0.000025))
+		model.add(FC(hidden_dim, activation="swish", weight_decay=0.00005))
+		model.add(FC(hidden_dim, activation="swish", weight_decay=0.000075))
+		model.add(FC(hidden_dim, activation="swish", weight_decay=0.000075))
+		model.add(FC(obs_dim+rew_dim, weight_decay=0.0001))
 	model.finalize(tf.train.AdamOptimizer, {"learning_rate": 0.001})
 	return model
 

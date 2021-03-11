@@ -77,6 +77,10 @@ class MBPO(RLAlgorithm):
             num_Q_per_grp=2,
             num_Q_grp=1,
             cross_grp_diff_batch=False,
+
+            model_load_dir=None,
+            model_load_index=None,
+            model_log_freq=0,
             **kwargs,
     ):
         """
@@ -115,9 +119,21 @@ class MBPO(RLAlgorithm):
         # print("====", obs_dim, "========")
 
         act_dim = np.prod(training_environment.action_space.shape)
-        self._model = construct_model(obs_dim=obs_dim, act_dim=act_dim, hidden_dim=hidden_dim, num_networks=num_networks, num_elites=num_elites)
+
+        # TODO: add variable scope to directly extract model parameters
+        self._model_load_dir = model_load_dir
+        print("============Model dir: ", self._model_load_dir)
+        if model_load_index:
+            latest_model_index = model_load_index
+        else:
+            latest_model_index = self._get_latest_index()
+        self._model = construct_model(obs_dim=obs_dim, act_dim=act_dim, hidden_dim=hidden_dim, num_networks=num_networks, num_elites=num_elites,
+                                      model_dir=self._model_load_dir, model_load_timestep=latest_model_index, load_model=True if model_load_dir else False)
         self._static_fns = static_fns
         self.fake_env = FakeEnv(self._model, self._static_fns)
+
+        model_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self._model.name)
+        all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
 
         self._rollout_schedule = rollout_schedule
         self._max_model_t = max_model_t
@@ -193,6 +209,8 @@ class MBPO(RLAlgorithm):
         self._num_Q_per_grp = num_Q_per_grp
         self._num_Q_grp = num_Q_grp
         self._cross_grp_diff_batch = cross_grp_diff_batch
+
+        self._model_log_freq = model_log_freq
 
         self._build()
 
@@ -285,6 +303,8 @@ class MBPO(RLAlgorithm):
                     model_rollout_metrics = self._rollout_model(rollout_batch_size=self._rollout_batch_size, deterministic=self._deterministic)
                     model_metrics.update(model_rollout_metrics)
                     
+                    if self._model_log_freq != 0 and self._timestep % self._model_log_freq == 0:
+                        self._log_model()
 
                     gt.stamp('epoch_rollout_model')
                     # self._visualize_model(self._evaluation_environment, self._total_timestep)
@@ -451,6 +471,7 @@ class MBPO(RLAlgorithm):
         print('Saving policy to: {}'.format(full_path))
         pickle.dump(data, open(full_path, 'wb'))
 
+    # TODO: use this function to save model
     def _log_model(self):
         save_path = os.path.join(self._log_dir, 'models')
         filesystem.mkdir(save_path)
@@ -497,7 +518,8 @@ class MBPO(RLAlgorithm):
 
     def _train_model(self, **kwargs):
         env_samples = self._pool.return_all_samples()
-        train_inputs, train_outputs = format_samples_for_training(env_samples, self.multigoal)
+        # train_inputs, train_outputs = format_samples_for_training(env_samples, self.multigoal)
+        train_inputs, train_outputs = format_samples_for_training(env_samples)
         model_metrics = self._model.train(train_inputs, train_outputs, **kwargs)
         return model_metrics
 
@@ -944,3 +966,8 @@ class MBPO(RLAlgorithm):
             saveables['_alpha_optimizer'] = self._alpha_optimizer
 
         return saveables
+
+    def _get_latest_index(self):
+        if self._model_load_dir is None:
+            return
+        return max([int(i.split("_")[1].split(".")[0]) for i in os.listdir(self._model_load_dir)])

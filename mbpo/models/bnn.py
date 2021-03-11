@@ -232,6 +232,9 @@ class BNN:
     def _save_state(self, idx):
         self._state[idx] = [layer.get_model_vars(idx, self.sess) for layer in self.layers]
 
+    def _save_model_to_path(self, path):
+        pass
+
     def _set_state(self):
         keys = ['weights', 'biases']
         ops = []
@@ -515,6 +518,7 @@ class BNN:
         the structure of this network.
         """
         structure = []
+        print("=========Inside load_sturcture:======== ", self.model_dir, self.name)
         with open(os.path.join(self.model_dir, "%s.nns" % self.name), "r") as f:
             for line in f:
                 kwargs = {

@@ -216,7 +216,7 @@ def add_ray_tune_args(parser):
             " Defaults to None."))
     parser.add_argument(
         '--Q_ensemble',
-        default=10,
+        default=2,
         type=int,
         help=tune_help_string(
             "The number of Q elites is set in config file"
