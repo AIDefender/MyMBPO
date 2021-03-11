@@ -8,8 +8,8 @@ import seaborn as sns
 import os
 import argparse
 sns.set()
-BATCH_DIFF_DATA = True
-# BATCH_DIFF_DATA = False
+# BATCH_DIFF_DATA = True
+BATCH_DIFF_DATA = False
 
 def plot(data, style = 'reacher'):
     this_scale = scales[style]
@@ -42,30 +42,45 @@ def plot(data, style = 'reacher'):
 
     df.to_csv("data.csv")
     grp_df = df.groupby(['dist_range']).mean()
+    grp_df_max = df.groupby(['dist_range']).max()
+    grp_df_min = df.groupby(['dist_range']).min()
+    grp_df_var = df.groupby(['dist_range']).var()
     grp_df_count = df.groupby(['dist_range']).count()
     grp_df.to_csv("mean.csv")
     grp_df_count.to_csv("count.csv")
 
     x = np.array(list(range(len(grp_df['pi_std']))))/dist_scale
-    # plt.ylim([0.2, 2])
     # plt.ylim([0, 4.5])
+    # plt.ylim([0, 0.55])
+    # plt.ylim([0.25, 2.5])
     if BATCH_DIFF_DATA:
-        # plt.plot(x, grp_df['inter_q_std'] * this_scale["q_std"], label = "std of inter-group Q(100x)", lw = 3)
-        # plt.plot(x, grp_df['cross_q_std'] * this_scale["q_std"], label = "std of cross-group Q(100x)", lw = 3)
-        plt.plot(x, grp_df['inter_q_std'] * this_scale["q_std"], label = "std of inter-group Q", lw = 3)
-        plt.plot(x, grp_df['cross_q_std'] * this_scale["q_std"], label = "std of cross-group Q", lw = 3)
+        if style.find("grid") != -1:
+            plt.plot(x, grp_df['inter_q_std'] * this_scale["q_std"], label = "std of inter-group Q(100x)", lw = 3)
+            plt.plot(x, grp_df['cross_q_std'] * this_scale["q_std"], label = "std of cross-group Q(100x)", lw = 3)
+        else:
+            plt.plot(x, grp_df['inter_q_std'] * this_scale["q_std"], label = "std of inter-group Q", lw = 3, color = 'red')
+            plt.plot(x, grp_df['cross_q_std'] * this_scale["q_std"], label = "std of cross-group Q", lw = 3, color = 'blue')
+            plt.fill_between(x, grp_df_min['inter_q_std'] * this_scale["q_std"], 
+                            grp_df_max['inter_q_std'] * this_scale["q_std"], lw = 3, color = 'red', alpha = 0.2)
+            plt.fill_between(x, grp_df_min['cross_q_std'] * this_scale["q_std"], 
+                            grp_df_max['cross_q_std'] * this_scale["q_std"], lw = 3, color = 'blue', alpha = 0.2)
     else:
         plt.plot(x, grp_df['q_std'] * this_scale["q_std"], label = "std of ensembled Q", lw = 3)
 
-    plt.plot(x, grp_df['pi_std'] * this_scale["pi_std"], label = "std of policy(10x)", lw = 3)
-    # plt.plot(x, grp_df['pi_std'] * this_scale["pi_std"], label = "std of policy(1x)", lw = 3)
+    if style.find("grid") != -1:
+        plt.plot(x, grp_df['pi_std'] * this_scale["pi_std"], label = "std of policy(1x)", lw = 3)
+    else:
+        plt.plot(x, grp_df['pi_std'] * this_scale["pi_std"], label = "std of policy(10x)", lw = 3)
     plt.plot(x, np.log(grp_df_count['dist']) * this_scale["cnt"], label = "log Count(0.1x)", lw = 3)
     plt.legend(fontsize = 16)
     plt.xlabel("Distance from target", fontsize=16)
     plt.ylabel("Value", fontsize=16)
-    plt.title("Comparison of Q and policy std on\n env Reacher, checkpoint %s"%EXP_INDEX, fontsize=18)
+    if style.find("grid") != -1:
+        plt.title("Comparison of Q and policy std on\n env ContinuousGrid, checkpoint %s"%EXP_INDEX, fontsize=18)
+    else:
+        plt.title("Comparison of Q and policy std on\n env Reacher, checkpoint %s"%EXP_INDEX, fontsize=18)
 
-    plt.savefig("plot.png")
+    plt.savefig("../checkpoint%s.png"%EXP_INDEX)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--pkl_dir", "-d", type=str)
@@ -78,6 +93,11 @@ SAVE_PATH="%s/%s"%(EXP_NAME, EXP_INDEX)
 if not os.path.isdir(SAVE_PATH):
     os.mkdir(SAVE_PATH)
 scales = {
+    "grid_data": {
+        "q_std": 100,
+        "pi_std": 1,
+        "cnt": 0.1
+    },
     "grid_sac_data": {
         "q_std": 100,
         "pi_std": 1,
@@ -93,12 +113,22 @@ scales = {
         "pi_std": 1,
         "cnt": 0.1
     },
+    "grid_sac3x3meandistinct_data": {
+        "q_std": 100,
+        "pi_std": 1,
+        "cnt": 0.1
+    },
     "reacher_sac_data": {
         "q_std": 1,
         "pi_std": 10,
         "cnt": 0.1
     },
     "reacher_sac3x3distinct_data": {
+        "q_std": 1,
+        "pi_std": 10,
+        "cnt": 0.1
+    },
+    "reacher_avgsac3x3distinct_data": {
         "q_std": 1,
         "pi_std": 10,
         "cnt": 0.1

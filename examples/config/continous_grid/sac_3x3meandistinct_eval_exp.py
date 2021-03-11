@@ -1,14 +1,14 @@
 params = {
     'type': 'MBPO',
     'universe': 'gym',
-    'domain': 'Reacher',
-    'task': 'v2',
+    'domain': 'ContinuousGrid',
+    'task': 'v0',
 
     'log_dir': '~/ray_mbpo/',
     'exp_name': 'defaults',
 
     'kwargs': {
-        'epoch_length': 1000,
+        'epoch_length': 100,
         'train_every_n_steps': 1,
         'actor_train_repeat': 1,
         'critic_train_repeat': 1,
@@ -37,7 +37,8 @@ params = {
         'num_Q_grp': 3,
         'cross_grp_diff_batch': True,
 
-        'dir_name': "reacher_avgsac3x3distinct_data",
+        # params for evaluating exploration
+        'dir_name': "grid_sac3x3meandistinct_data",
         'evaluate_explore_freq': 5,
     }
 }

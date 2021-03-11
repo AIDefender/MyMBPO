@@ -414,7 +414,7 @@ class MBPO(RLAlgorithm):
         if self._cross_grp_diff_batch:
             inter_grp_q_stds = [np.std(Qs_mean_action[:, i * self._num_Q_per_grp:(i+1) * self._num_Q_per_grp], axis = 1) for i in range(self._num_Q_grp)]
             mean_inter_grp_q_std = np.mean(np.array(inter_grp_q_stds), axis = 0)
-            min_qs_per_grp = [np.min(Qs_mean_action[:, i * self._num_Q_per_grp:(i+1) * self._num_Q_per_grp], axis = 1) for i in range(self._num_Q_grp)]
+            min_qs_per_grp = [np.mean(Qs_mean_action[:, i * self._num_Q_per_grp:(i+1) * self._num_Q_per_grp], axis = 1) for i in range(self._num_Q_grp)]
             cross_grp_std = np.std(np.array(min_qs_per_grp), axis = 0)
         else:
             q_std = np.std(Qs_mean_action, axis=1) # In fact V std
