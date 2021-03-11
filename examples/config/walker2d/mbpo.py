@@ -10,7 +10,7 @@ params = {
     'kwargs': {
         'epoch_length': 1000,
         'train_every_n_steps': 1,
-        'n_train_repeat': 20,
+        'actor_train_repeat': 20,
         'critic_train_repeat': 20,
         'eval_render_mode': None,
         'eval_n_episodes': 10,
