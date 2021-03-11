@@ -36,7 +36,7 @@ params = {
         'rollout_schedule': [20, 150, 1, 1],
 
         'model_load_dir': "/home/linus/ray_mbpo/HalfCheetah/mbpo-test_log_model/seed:1_2021-03-11_17-48-24zgs15gjv/models",
-        'model_log_freq': 10,
-        'model_load_index': 10000
+        'model_log_freq': 100,
+        'model_load_index': 20000
     }
 }

@@ -35,6 +35,6 @@ params = {
         'max_model_t': None,
         'rollout_schedule': [20, 150, 1, 1],
 
-        'model_log_freq': 10,
+        'model_log_freq': 100,
     }
 }

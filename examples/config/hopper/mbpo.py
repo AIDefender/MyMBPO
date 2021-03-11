@@ -32,6 +32,7 @@ params = {
         'target_entropy': -1,
         'max_model_t': None,
         'rollout_schedule': [20, 150, 1, 15],
+        'model_log_freq': 100,
     }
 }
 
