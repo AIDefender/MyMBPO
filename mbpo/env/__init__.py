@@ -12,6 +12,10 @@ MBPO_ENVIRONMENT_SPECS = (
     {
         'id': 'ContinuousGrid-v0',
         'entry_point': (f'mbpo.env.continuous_grid:ContinuousGridEnv')
+    },
+    {
+        'id': 'MyWalker2d-v2',
+        'entry_point': (f'mbpo.env.my_walker2d:MyWalker2dEnv')
     }
 )
 
