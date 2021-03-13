@@ -33,6 +33,8 @@ params = {
         'max_model_t': None,
         'rollout_schedule': [20, 150, 1, 15],
         'model_log_freq': 100,
+        'model_load_dir': "/home/linus/ray_mbpo/Hopper/mbpo-for-model/seed:1_2021-03-11_21-11-56kqrfdf8z/models",
+        'model_load_index': 100000,
     }
 }
 

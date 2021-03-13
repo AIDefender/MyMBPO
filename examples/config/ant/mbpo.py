@@ -1,11 +1,12 @@
 params = {
     'type': 'MBPO',
     'universe': 'gym',
-    'domain': 'Hopper',
+    'domain': 'AntTruncatedObs', ## mbpo/env/ant.py
     'task': 'v2',
 
     'log_dir': '~/ray_mbpo/',
     'exp_name': 'defaults',
+    'seed': 42,
 
     'kwargs': {
         'epoch_length': 1000,
@@ -22,17 +23,17 @@ params = {
 
         'model_train_freq': 250,
         'model_retain_epochs': 1,
-        'rollout_batch_size': 100e3,
         'sample_repeat': 1, # repeatedly propose actions on one start state
+        'rollout_batch_size': 100e3,
         'deterministic': False,
         'num_networks': 7,
         'num_elites': 5,
         'real_ratio': 0.05,
         'critic_same_as_actor': True,
-        'target_entropy': -1,
+        'target_entropy': -4,
         'max_model_t': None,
-        'rollout_schedule': [20, 150, 1, 15],
-        'model_log_freq': 100,
+        'rollout_schedule': [20, 100, 1, 25],
+
+        'model_log_freq': 300,
     }
 }
-
