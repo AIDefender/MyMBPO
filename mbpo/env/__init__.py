@@ -16,7 +16,11 @@ MBPO_ENVIRONMENT_SPECS = (
     {
         'id': 'MyWalker2d-v2',
         'entry_point': (f'mbpo.env.my_walker2d:MyWalker2dEnv')
-    }
+    },
+    {
+        'id': 'MyHopper-v2',
+        'entry_point': (f'mbpo.env.my_hopper:MyHopperEnv')
+    },
 )
 
 def register_mbpo_environments():
